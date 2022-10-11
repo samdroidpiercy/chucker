@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
@@ -23,12 +24,12 @@ import androidx.lifecycle.lifecycleScope
 import com.chuckerteam.chucker.R
 import com.chuckerteam.chucker.databinding.ChuckerFragmentTransactionPayloadBinding
 import com.chuckerteam.chucker.internal.data.entity.HttpTransaction
-import com.chuckerteam.chucker.internal.support.Logger
 import com.chuckerteam.chucker.internal.support.calculateLuminance
 import com.chuckerteam.chucker.internal.support.combineLatest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 
@@ -43,7 +44,6 @@ internal class TransactionPayloadFragment :
 
     private val saveToFile = registerForActivityResult(ActivityResultContracts.CreateDocument()) { uri ->
         val transaction = viewModel.transaction.value
-        val applicationContext = requireContext().applicationContext
         if (uri != null && transaction != null) {
             lifecycleScope.launch {
                 val result = saveToFile(payloadType, uri, transaction)
@@ -52,11 +52,11 @@ internal class TransactionPayloadFragment :
                 } else {
                     R.string.chucker_file_not_saved
                 }
-                Toast.makeText(applicationContext, toastMessageId, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, toastMessageId, Toast.LENGTH_SHORT).show()
             }
         } else {
             Toast.makeText(
-                applicationContext,
+                requireContext(),
                 R.string.chucker_save_failed_to_open_document,
                 Toast.LENGTH_SHORT
             ).show()
@@ -78,7 +78,7 @@ internal class TransactionPayloadFragment :
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
+    ): View? {
         payloadBinding = ChuckerFragmentTransactionPayloadBinding.inflate(
             inflater,
             container,
@@ -95,27 +95,29 @@ internal class TransactionPayloadFragment :
             adapter = payloadAdapter
         }
 
-        viewModel.transaction.combineLatest(viewModel.formatRequestBody).observe(
-            viewLifecycleOwner,
-            Observer { (transaction, formatRequestBody) ->
-                if (transaction == null) return@Observer
-                lifecycleScope.launch {
-                    payloadBinding.loadingProgress.visibility = View.VISIBLE
+        viewModel.transaction
+            .combineLatest(viewModel.formatRequestBody)
+            .observe(
+                viewLifecycleOwner,
+                Observer { (transaction, formatRequestBody) ->
+                    if (transaction == null) return@Observer
+                    lifecycleScope.launch {
+                        payloadBinding.loadingProgress.visibility = View.VISIBLE
 
-                    val result = processPayload(payloadType, transaction, formatRequestBody)
-                    if (result.isEmpty()) {
-                        showEmptyState()
-                    } else {
-                        payloadAdapter.setItems(result)
-                        showPayloadState()
+                        val result = processPayload(payloadType, transaction, formatRequestBody)
+                        if (result.isEmpty()) {
+                            showEmptyState()
+                        } else {
+                            payloadAdapter.setItems(result)
+                            showPayloadState()
+                        }
+                        // Invalidating menu, because we need to hide menu items for empty payloads
+                        requireActivity().invalidateOptionsMenu()
+
+                        payloadBinding.loadingProgress.visibility = View.GONE
                     }
-                    // Invalidating menu, because we need to hide menu items for empty payloads
-                    requireActivity().invalidateOptionsMenu()
-
-                    payloadBinding.loadingProgress.visibility = View.GONE
                 }
-            }
-        )
+            )
     }
 
     private fun showEmptyState() {
@@ -162,7 +164,7 @@ internal class TransactionPayloadFragment :
         if (payloadType == PayloadType.REQUEST) {
             viewModel.doesRequestBodyRequireEncoding.observe(
                 viewLifecycleOwner,
-                { menu.findItem(R.id.encode_url).isVisible = it }
+                Observer { menu.findItem(R.id.encode_url).isVisible = it }
             )
         } else {
             menu.findItem(R.id.encode_url).isVisible = false
@@ -172,6 +174,8 @@ internal class TransactionPayloadFragment :
     }
 
     private fun shouldShowSaveIcon(transaction: HttpTransaction?) = when {
+        // SAF is not available on pre-Kit Kat so let's hide the icon.
+        (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) -> false
         (payloadType == PayloadType.REQUEST) -> (0L != (transaction?.requestPayloadSize))
         (payloadType == PayloadType.RESPONSE) -> (0L != (transaction?.responsePayloadSize))
         else -> true
@@ -179,10 +183,10 @@ internal class TransactionPayloadFragment :
 
     private fun shouldShowSearchIcon(transaction: HttpTransaction?) = when (payloadType) {
         PayloadType.REQUEST -> {
-            (false == transaction?.isRequestBodyEncoded) && (0L != (transaction.requestPayloadSize))
+            (true == transaction?.isRequestBodyPlainText) && (0L != (transaction.requestPayloadSize))
         }
         PayloadType.RESPONSE -> {
-            (false == transaction?.isResponseBodyEncoded) && (0L != (transaction.responsePayloadSize))
+            (true == transaction?.isResponseBodyPlainText) && (0L != (transaction.responsePayloadSize))
         }
     }
 
@@ -216,12 +220,12 @@ internal class TransactionPayloadFragment :
             val result = mutableListOf<TransactionPayloadItem>()
 
             val headersString: String
-            val isBodyEncoded: Boolean
+            val isBodyPlainText: Boolean
             val bodyString: String
 
             if (type == PayloadType.REQUEST) {
                 headersString = transaction.getRequestHeadersString(true)
-                isBodyEncoded = transaction.isRequestBodyEncoded
+                isBodyPlainText = transaction.isRequestBodyPlainText
                 bodyString = if (formatRequestBody) {
                     transaction.getFormattedRequestBody()
                 } else {
@@ -229,7 +233,7 @@ internal class TransactionPayloadFragment :
                 }
             } else {
                 headersString = transaction.getResponseHeadersString(true)
-                isBodyEncoded = transaction.isResponseBodyEncoded
+                isBodyPlainText = transaction.isResponseBodyPlainText
                 bodyString = transaction.getFormattedResponseBody()
             }
 
@@ -244,29 +248,22 @@ internal class TransactionPayloadFragment :
                 )
             }
 
-            // The body could either be an image, plain text, decoded binary or not decoded binary.
+            // The body could either be an image, binary encoded or plain text.
             val responseBitmap = transaction.responseImageBitmap
-
             if (type == PayloadType.RESPONSE && responseBitmap != null) {
                 val bitmapLuminance = responseBitmap.calculateLuminance()
                 result.add(TransactionPayloadItem.ImageItem(responseBitmap, bitmapLuminance))
-                return@withContext result
-            }
-
-            when {
-                isBodyEncoded -> {
-                    val text = requireContext().getString(R.string.chucker_body_omitted)
-                    result.add(TransactionPayloadItem.BodyLineItem(SpannableStringBuilder.valueOf(text)))
-                }
-                bodyString.isBlank() -> {
-                    val text = requireContext().getString(R.string.chucker_body_empty)
-                    result.add(TransactionPayloadItem.BodyLineItem(SpannableStringBuilder.valueOf(text)))
-                }
-                else -> bodyString.lines().forEach {
+            } else if (!isBodyPlainText) {
+                requireContext().getString(R.string.chucker_body_omitted).let {
                     result.add(TransactionPayloadItem.BodyLineItem(SpannableStringBuilder.valueOf(it)))
                 }
+            } else {
+                if (bodyString.isNotBlank()) {
+                    bodyString.lines().forEach {
+                        result.add(TransactionPayloadItem.BodyLineItem(SpannableStringBuilder.valueOf(it)))
+                    }
+                }
             }
-
             return@withContext result
         }
     }
@@ -288,8 +285,11 @@ internal class TransactionPayloadFragment :
                         }
                     }
                 }
+            } catch (e: FileNotFoundException) {
+                e.printStackTrace()
+                return@withContext false
             } catch (e: IOException) {
-                Logger.error("Failed to save transaction to a file", e)
+                e.printStackTrace()
                 return@withContext false
             }
             return@withContext true

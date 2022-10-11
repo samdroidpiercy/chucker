@@ -5,7 +5,7 @@ import android.content.Context
 /**
  * No-op implementation.
  */
-@Suppress("UnusedPrivateMember", "UNUSED_PARAMETER")
+@Suppress("UnusedPrivateMember")
 public class RetentionManager @JvmOverloads constructor(
     context: Context,
     retentionPeriod: Any? = null

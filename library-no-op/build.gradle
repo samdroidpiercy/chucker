@@ -11,10 +11,6 @@ android {
         ]
     }
 
-    buildFeatures {
-        buildConfig = false
-    }
-
     defaultConfig {
         minSdkVersion rootProject.minSdkVersion
     }
@@ -26,13 +22,6 @@ android {
         disable 'RtlEnabled'
         // Don't fail build if some dependencies outdated
         disable 'GradleDependency'
-    }
-
-    publishing {
-        singleVariant('release') {
-            withSourcesJar()
-            withJavadocJar()
-        }
     }
 }
 
