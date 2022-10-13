@@ -3,16 +3,17 @@ package com.chuckerteam.chucker.internal.support
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.distinctUntilChanged
-import com.chuckerteam.chucker.util.test
+import com.chuckerteam.chucker.test
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 
 internal class LiveDataDistinctUntilChangedTest {
-    @get:Rule val instantExecutorRule = InstantTaskExecutorRule()
+    @get:Rule
+    val instantExecutorRule = InstantTaskExecutorRule()
 
     @Test
-    fun `downstream emits initial upstream data`() {
+    fun initialUpstreamData_isEmittedDownstream() {
         val upstream = MutableLiveData<Any?>(null)
 
         upstream.distinctUntilChanged().test {
@@ -21,7 +22,7 @@ internal class LiveDataDistinctUntilChangedTest {
     }
 
     @Test
-    fun `downstream does not emit if the upstream is empty`() {
+    fun emptyUpstream_isNotEmittedDownstream() {
         val upstream = MutableLiveData<Any?>()
 
         upstream.distinctUntilChanged().test {
@@ -30,7 +31,7 @@ internal class LiveDataDistinctUntilChangedTest {
     }
 
     @Test
-    fun `downstream emits new values`() {
+    fun newDistinctData_isEmittedDownstream() {
         val upstream = MutableLiveData<Int?>()
 
         upstream.distinctUntilChanged().test {
@@ -49,7 +50,7 @@ internal class LiveDataDistinctUntilChangedTest {
     }
 
     @Test
-    fun `downstream does not emit repeated data`() {
+    fun newIndistinctData_isNotEmittedDownstream() {
         val upstream = MutableLiveData<String?>()
 
         upstream.distinctUntilChanged().test {
@@ -68,7 +69,7 @@ internal class LiveDataDistinctUntilChangedTest {
     }
 
     @Test
-    fun `downstream emits according to distinct filter`() {
+    fun customFunction_canBeUsedToDistinguishData() {
         val upstream = MutableLiveData<Pair<Int, String>>()
 
         upstream.distinctUntilChanged { old, new -> old.first == new.first }.test {

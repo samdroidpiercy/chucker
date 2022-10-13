@@ -1,29 +1,25 @@
 package com.chuckerteam.chucker.internal.support
 
-import com.chuckerteam.chucker.util.NoLoggerRule
 import com.google.common.truth.Truth.assertThat
 import okio.*
-import okio.buffer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.extension.ExtendWith
 import java.io.IOException
 
-@ExtendWith(NoLoggerRule::class)
 internal class DepletingSourceTest {
     @Test
-    fun `upstream content is forwarded downstream`() {
+    fun delegateContent_isMovedToDownstream() {
         val delegate = Buffer().writeUtf8("Hello, world!")
         val depletingSource = DepletingSource(delegate)
 
-        val content = depletingSource.buffer().use(BufferedSource::readByteString)
+        val content = Okio.buffer(depletingSource).use(BufferedSource::readByteString)
 
         assertThat(content.utf8()).isEqualTo("Hello, world!")
     }
 
     @Test
-    fun `upstream does not deplete in case of a reading failure`() {
+    fun delegateIsNotDepleted_whenReadingFails() {
         val delegate = ThrowOnFirstReadSource("Hello, world!")
         val depletingSource = DepletingSource(delegate)
 
@@ -38,7 +34,7 @@ internal class DepletingSourceTest {
     }
 
     @Test
-    fun `upstream is depleted if source is closed`() {
+    fun delegateIsDepleted_whenSourceIsClosed() {
         val delegate = Buffer().writeUtf8("Hello, world!")
         val depletingSource = DepletingSource(delegate)
 
@@ -48,7 +44,7 @@ internal class DepletingSourceTest {
     }
 
     @Test
-    fun `reading failures are not propagated if source is closed`() {
+    fun readingFailures_areNotPropagated_whenSourceIsClosed() {
         val delegate = ThrowOnFirstReadSource("Hello, world!")
         val depletingSource = DepletingSource(delegate)
 
@@ -56,7 +52,7 @@ internal class DepletingSourceTest {
     }
 
     @Test
-    fun `upstream is not depleted if reading fails on close`() {
+    fun delegateIsNotDepleted_whenReadingFails_duringClose() {
         val delegate = ThrowOnFirstReadSource("Hello, world!")
         val depletingSource = DepletingSource(delegate)
 
@@ -66,7 +62,7 @@ internal class DepletingSourceTest {
     }
 
     @Test
-    fun `upstream is not depleted multiple times`() {
+    fun delegateCannotBeDepleted_multipleTimes() {
         val delegate = Buffer().writeUtf8("Hello, world!")
         val depletingSource = DepletingSource(delegate)
 

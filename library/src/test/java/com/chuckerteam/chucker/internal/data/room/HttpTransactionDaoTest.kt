@@ -37,7 +37,7 @@ internal class HttpTransactionDaoTest {
     fun tearDown() = db.close()
 
     @Test
-    fun `insert a transaction`() = runBlocking {
+    fun insertedDataMakesItToTheDatabase() = runBlocking {
         val data = createRequest().withResponseData()
         val id = testObject.insert(data)
 
@@ -68,7 +68,7 @@ internal class HttpTransactionDaoTest {
     }
 
     @Test
-    fun `get a transaction by ID`() = runBlocking {
+    fun loadSpecificTransactionById() = runBlocking {
         val disregardedTransaction = createRequest()
         insertTransaction(disregardedTransaction)
         val transaction = createRequest().withResponseData()
@@ -80,7 +80,7 @@ internal class HttpTransactionDaoTest {
     }
 
     @Test
-    fun `get all transactions`() = runBlocking {
+    fun loadAllTransactions() = runBlocking {
         val older = createRequest().apply { requestDate = 100L }
         val newer = createRequest().apply { requestDate = 200L }
         insertTransaction(older)
@@ -99,7 +99,7 @@ internal class HttpTransactionDaoTest {
     }
 
     @Test
-    fun `update a transaction`() = runBlocking {
+    fun updateTransaction() = runBlocking {
         val older = createRequest().apply { requestDate = 100L }
         val newer = createRequest().apply { requestDate = 200L }
         insertTransaction(older)
@@ -114,7 +114,7 @@ internal class HttpTransactionDaoTest {
     }
 
     @Test
-    fun `delete all transactions`() = runBlocking {
+    fun deleteAllTheData() = runBlocking {
         testObject.insert(createRequest())
         assertRowCount(1)
 
@@ -123,7 +123,7 @@ internal class HttpTransactionDaoTest {
     }
 
     @Test
-    fun `delete old transactions`() = runBlocking {
+    fun deleteDataBefore() = runBlocking {
         val older = createRequest().apply { requestDate = 100L }
         val newer = createRequest().apply { requestDate = 200L }
         insertTransaction(older)
@@ -138,7 +138,7 @@ internal class HttpTransactionDaoTest {
     }
 
     @Test
-    fun `old data threshold is inclusive`() = runBlocking {
+    fun deleteDataBefore_timestampExactlyMatchesThreshold() = runBlocking {
         val older = createRequest().apply { requestDate = 100L }
         val newer = createRequest().apply { requestDate = 200L }
         insertTransaction(older)
@@ -153,7 +153,7 @@ internal class HttpTransactionDaoTest {
     }
 
     @Test
-    fun `get sorted transaction tuples`() = runBlocking {
+    fun loadSortedTuples() = runBlocking {
         val older = createRequest().withResponseData().apply { requestDate = 100L }
         val newer = createRequest().withResponseData().apply { requestDate = 200L }
         insertTransaction(older)
@@ -165,7 +165,7 @@ internal class HttpTransactionDaoTest {
     }
 
     @Test
-    fun `transaction tuples are filtered by path`() = runBlocking {
+    fun filterTuplesByPath() = runBlocking {
         val transactionOne =
             createRequest("abc").withResponseData().apply {
                 requestDate = 200L
@@ -183,13 +183,13 @@ internal class HttpTransactionDaoTest {
         insertTransaction(transactionTwo)
         insertTransaction(transactionThree)
 
-        testObject.getFilteredTuples(codeQuery = "418", pathQuery = "%abc%").observeForever { result ->
+        testObject.getFilteredTuples("418", "%abc%").observeForever { result ->
             assertTuples(listOf(transactionOne, transactionTwo), result)
         }
     }
 
     @Test
-    fun `transaction tuples are filtered by code`() = runBlocking {
+    fun filterTuplesByCode() = runBlocking {
         val transactionOne =
             createRequest("abc").withResponseData().apply {
                 requestDate = 200L
@@ -210,7 +210,7 @@ internal class HttpTransactionDaoTest {
         insertTransaction(transactionTwo)
         insertTransaction(transactionThree)
 
-        testObject.getFilteredTuples(codeQuery = "4%", pathQuery = "%").observeForever { result ->
+        testObject.getFilteredTuples("4%", "%").observeForever { result ->
             assertTuples(listOf(transactionThree, transactionOne), result)
         }
     }

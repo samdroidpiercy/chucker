@@ -2,13 +2,14 @@ package com.chuckerteam.chucker.internal.support
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
-import com.chuckerteam.chucker.util.test
+import com.chuckerteam.chucker.test
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 
 internal class LiveDataCombineLatestTest {
-    @get:Rule val instantExecutorRule = InstantTaskExecutorRule()
+    @get:Rule
+    val instantExecutorRule = InstantTaskExecutorRule()
 
     private val inputA = MutableLiveData<Boolean>()
     private val inputB = MutableLiveData<Int>()
@@ -16,7 +17,7 @@ internal class LiveDataCombineLatestTest {
     private val upstream = inputA.combineLatest(inputB)
 
     @Test
-    fun `downstream does not emit if the first source has no values`() {
+    fun firstEmptyValue_preventsDownstreamEmissions() {
         upstream.test {
             inputB.value = 1
             inputB.value = 2
@@ -27,7 +28,7 @@ internal class LiveDataCombineLatestTest {
     }
 
     @Test
-    fun `downstream does not emit if the second source has no values`() {
+    fun secondEmptyValue_preventsDownstreamEmissions() {
         upstream.test {
             inputA.value = true
             inputA.value = false
@@ -37,7 +38,7 @@ internal class LiveDataCombineLatestTest {
     }
 
     @Test
-    fun `downstream combines source values`() {
+    fun bothEmittedValues_areCombinedDownstream() {
         upstream.test {
             inputA.value = true
             inputB.value = 1
@@ -47,7 +48,7 @@ internal class LiveDataCombineLatestTest {
     }
 
     @Test
-    fun `downstream updates with updates to the second source`() {
+    fun lastFirstValue_isCombinedWithNewestSecondValues() {
         upstream.test {
             inputA.value = true
             inputB.value = 1
@@ -59,7 +60,7 @@ internal class LiveDataCombineLatestTest {
     }
 
     @Test
-    fun `downstream updates with updates to the first source`() {
+    fun lastSecondValue_isCombinedWithNewestFirstValues() {
         upstream.test {
             inputA.value = true
             inputB.value = 1

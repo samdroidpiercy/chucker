@@ -6,10 +6,11 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
 internal class FileFactoryTest {
-    @TempDir lateinit var tempDir: File
+    @TempDir
+    lateinit var tempDir: File
 
     @Test
-    fun `file is created if parent does not exist`() {
+    fun fileIsCreated_evenIfParentDirectory_isDeleted() {
         assertThat(tempDir.deleteRecursively()).isTrue()
 
         assertThat(FileFactory.create(tempDir)!!.isFile).isTrue()

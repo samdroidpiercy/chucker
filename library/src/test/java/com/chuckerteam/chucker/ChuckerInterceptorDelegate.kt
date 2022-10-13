@@ -1,8 +1,6 @@
-package com.chuckerteam.chucker.util
+package com.chuckerteam.chucker
 
 import android.content.Context
-import com.chuckerteam.chucker.R
-import com.chuckerteam.chucker.api.BodyDecoder
 import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.chuckerteam.chucker.internal.data.entity.HttpTransaction
@@ -19,13 +17,12 @@ internal class ChuckerInterceptorDelegate(
     headersToRedact: Set<String> = emptySet(),
     alwaysReadResponseBody: Boolean = false,
     cacheDirectoryProvider: CacheDirectoryProvider,
-    decoders: List<BodyDecoder> = emptyList(),
 ) : Interceptor {
     private val idGenerator = AtomicLong()
     private val transactions = CopyOnWriteArrayList<HttpTransaction>()
 
     private val mockContext = mockk<Context> {
-        every { getString(R.string.chucker_body_content_truncated) } returns "\n\n--- Content truncated ---"
+        every { getString(any()) } returns ""
     }
     private val mockCollector = mockk<ChuckerCollector> {
         every { onRequestSent(any()) } returns Unit
@@ -36,14 +33,14 @@ internal class ChuckerInterceptorDelegate(
         }
     }
 
-    private val chucker = ChuckerInterceptor.Builder(context = mockContext)
-        .collector(mockCollector)
-        .maxContentLength(maxContentLength)
-        .redactHeaders(headersToRedact)
-        .alwaysReadResponseBody(alwaysReadResponseBody)
-        .cacheDirectorProvider(cacheDirectoryProvider)
-        .apply { decoders.forEach(::addBodyDecoder) }
-        .build()
+    private val chucker = ChuckerInterceptor(
+        context = mockContext,
+        collector = mockCollector,
+        maxContentLength = maxContentLength,
+        headersToRedact = headersToRedact,
+        cacheDirectoryProvider = cacheDirectoryProvider,
+        alwaysReadResponseBody = alwaysReadResponseBody,
+    )
 
     internal fun expectTransaction(): HttpTransaction {
         if (transactions.isEmpty()) {

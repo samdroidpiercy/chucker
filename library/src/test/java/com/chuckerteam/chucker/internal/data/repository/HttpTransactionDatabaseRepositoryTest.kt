@@ -51,7 +51,7 @@ internal class HttpTransactionDatabaseRepositoryTest {
     fun tearDown() = db.close()
 
     @Test
-    fun `get a single transaction`() = runBlocking {
+    fun loadSingleTransaction() = runBlocking {
         val data = createRequest().apply { id = 123L }
         db.transactionDao().insert(data)
 
@@ -62,7 +62,7 @@ internal class HttpTransactionDatabaseRepositoryTest {
             assertThat(it?.host).isEqualTo(data.host)
             assertThat(it?.path).isEqualTo(data.path)
             assertThat(it?.scheme).isEqualTo(data.scheme)
-            assertThat(it?.isRequestBodyEncoded).isEqualTo(data.isRequestBodyEncoded)
+            assertThat(it?.isRequestBodyPlainText).isEqualTo(data.isRequestBodyPlainText)
             assertThat(it?.requestDate).isEqualTo(data.requestDate)
             assertThat(it?.method).isEqualTo(data.method)
             assertThat(it?.requestContentType).isEqualTo(data.requestContentType)
@@ -71,7 +71,7 @@ internal class HttpTransactionDatabaseRepositoryTest {
     }
 
     @Test
-    fun `insert a single transaction`() = runBlocking {
+    fun insertTransaction() = runBlocking {
         val data = createRequest()
 
         testObject.insertTransaction(data)
@@ -84,7 +84,7 @@ internal class HttpTransactionDatabaseRepositoryTest {
             assertThat(it?.host).isEqualTo(data.host)
             assertThat(it?.path).isEqualTo(data.path)
             assertThat(it?.scheme).isEqualTo(data.scheme)
-            assertThat(it?.isRequestBodyEncoded).isEqualTo(data.isRequestBodyEncoded)
+            assertThat(it?.isRequestBodyPlainText).isEqualTo(data.isRequestBodyPlainText)
             assertThat(it?.requestDate).isEqualTo(data.requestDate)
             assertThat(it?.method).isEqualTo(data.method)
             assertThat(it?.requestContentType).isEqualTo(data.requestContentType)
@@ -93,7 +93,7 @@ internal class HttpTransactionDatabaseRepositoryTest {
     }
 
     @Test
-    fun `get all transactions`() = runBlocking {
+    fun getAllTransactions() = runBlocking {
         testObject.insertTransaction(transaction)
         testObject.insertTransaction(otherTransaction)
 
@@ -108,7 +108,7 @@ internal class HttpTransactionDatabaseRepositoryTest {
     }
 
     @Test
-    fun `get sorted transaction tuples`() = runBlocking {
+    fun getSortedTransactionTuples() = runBlocking {
         testObject.insertTransaction(transaction)
         testObject.insertTransaction(otherTransaction)
 
@@ -118,7 +118,7 @@ internal class HttpTransactionDatabaseRepositoryTest {
     }
 
     @Test
-    fun `transaction tuples are not filtered with empty inputs`() = runBlocking {
+    fun getFilteredTransactionTuple_emptyStringsReturnAll() = runBlocking {
         val transactionOne =
             createRequest("abc").withResponseData().apply {
                 requestDate = 200L
@@ -136,13 +136,13 @@ internal class HttpTransactionDatabaseRepositoryTest {
         testObject.insertTransaction(transactionTwo)
         testObject.insertTransaction(transactionThree)
 
-        testObject.getFilteredTransactionTuples(code = "", path = "").observeForever { result ->
+        testObject.getFilteredTransactionTuples("", "").observeForever { result ->
             assertTuples(listOf(transactionThree, transactionOne, transactionTwo), result)
         }
     }
 
     @Test
-    fun `transaction tuples are filtered by path`() = runBlocking {
+    fun getFilteredTransactionTuple_filterPath() = runBlocking {
         val transactionOne =
             createRequest("abc").withResponseData().apply {
                 requestDate = 200L
@@ -160,13 +160,13 @@ internal class HttpTransactionDatabaseRepositoryTest {
         testObject.insertTransaction(transactionTwo)
         testObject.insertTransaction(transactionThree)
 
-        testObject.getFilteredTransactionTuples(code = "", path = "def").observeForever { result ->
+        testObject.getFilteredTransactionTuples("", "def").observeForever { result ->
             assertTuples(listOf(transactionThree, transactionTwo), result)
         }
     }
 
     @Test
-    fun `transaction tuples are filtered by code`() = runBlocking {
+    fun getFilteredTransactionTuple_filterCode() = runBlocking {
         val transactionOne =
             createRequest("abc").withResponseData().apply {
                 requestDate = 200L
@@ -187,13 +187,13 @@ internal class HttpTransactionDatabaseRepositoryTest {
         testObject.insertTransaction(transactionTwo)
         testObject.insertTransaction(transactionThree)
 
-        testObject.getFilteredTransactionTuples(code = "4", path = "").observeForever { result ->
+        testObject.getFilteredTransactionTuples("4", "").observeForever { result ->
             assertTuples(listOf(transactionThree, transactionOne), result)
         }
     }
 
     @Test
-    fun `delete all transactions`() = runBlocking {
+    fun deleteAllTransactions() = runBlocking {
         testObject.insertTransaction(transaction)
         testObject.insertTransaction(otherTransaction)
 
@@ -206,7 +206,7 @@ internal class HttpTransactionDatabaseRepositoryTest {
     }
 
     @Test
-    fun `delete old transactions`() = runBlocking {
+    fun deleteOldTransactions() = runBlocking {
         testObject.insertTransaction(transaction)
         testObject.insertTransaction(otherTransaction)
 
@@ -223,7 +223,7 @@ internal class HttpTransactionDatabaseRepositoryTest {
     }
 
     @Test
-    fun `update a transaction`() = runBlocking {
+    fun updateTransaction() = runBlocking {
         testObject.insertTransaction(transaction)
 
         val newHost = randomString()

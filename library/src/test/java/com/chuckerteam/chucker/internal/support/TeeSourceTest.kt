@@ -1,43 +1,42 @@
 package com.chuckerteam.chucker.internal.support
 
-import com.chuckerteam.chucker.util.SEGMENT_SIZE
+import com.chuckerteam.chucker.SEGMENT_SIZE
 import com.google.common.truth.Truth.assertThat
 import okio.*
-import okio.buffer
 import org.junit.jupiter.api.Test
 import java.io.IOException
 import kotlin.random.Random
 
 internal class TeeSourceTest {
     @Test
-    fun `upstream bytes are forwarded`() {
+    fun bytesReadFromUpstream_areAvailableDownstream() {
         val testSource = TestSource()
 
         val teeSource = TeeSource(testSource, sideStream = Buffer())
-        val downstream = teeSource.buffer().use(BufferedSource::readByteString)
+        val downstream = Okio.buffer(teeSource).use(BufferedSource::readByteString)
 
         assertThat(downstream).isEqualTo(testSource.content)
     }
 
     @Test
-    fun `upstream bytes are side streamed`() {
+    fun bytesReadFromUpstream_areAvailableToSideChannel() {
         val testSource = TestSource()
         val sideStream = Buffer()
 
         val teeSource = TeeSource(testSource, sideStream)
-        teeSource.buffer().use(BufferedSource::readByteString)
+        Okio.buffer(teeSource).use(BufferedSource::readByteString)
 
         assertThat(sideStream.snapshot()).isEqualTo(testSource.content)
     }
 
     @Test
-    fun `upstream bytes are available in side strean while being pulled`() {
+    fun bytesPulledFromUpstream_arePulledToSideChannel_alongTheDownstream() {
         val repetitions = Random.nextInt(1, 100)
         val testSource = TestSource(repetitions * SEGMENT_SIZE.toInt())
         val sideStream = Buffer()
 
         val teeSource = TeeSource(testSource, sideStream)
-        teeSource.buffer().use { source ->
+        Okio.buffer(teeSource).use { source ->
             repeat(repetitions) { index ->
                 source.readByteString(SEGMENT_SIZE)
 
@@ -48,38 +47,38 @@ internal class TeeSourceTest {
     }
 
     @Test
-    fun `side stream failing to write does not affect downstream`() {
+    fun sideStreamThatFailsToWrite_doesNotFailDownstream() {
         val testSource = TestSource()
 
         val teeSource = TeeSource(testSource, sideStream = ThrowingSink(throwForWrite = true))
-        val downstream = teeSource.buffer().use(BufferedSource::readByteString)
+        val downstream = Okio.buffer(teeSource).use(BufferedSource::readByteString)
 
         assertThat(downstream).isEqualTo(testSource.content)
     }
 
     @Test
-    fun `side stream failing to flush does not affect downstream`() {
+    fun sideStreamThatFailsToFlush_doesNotFailDownstream() {
         val testSource = TestSource()
 
         val teeSource = TeeSource(testSource, sideStream = ThrowingSink(throwForFlush = true))
-        val downstream = teeSource.buffer().use(BufferedSource::readByteString)
+        val downstream = Okio.buffer(teeSource).use(BufferedSource::readByteString)
 
         assertThat(downstream).isEqualTo(testSource.content)
     }
 
     @Test
-    fun `side stream failing to close does not affect downstream`() {
+    fun sideStreamThatFailsToClose_doesNotFailDownstream() {
         val testSource = TestSource()
 
         val teeSource = TeeSource(testSource, sideStream = ThrowingSink(throwForClose = true))
-        val downstream = teeSource.buffer().use(BufferedSource::readByteString)
+        val downstream = Okio.buffer(teeSource).use(BufferedSource::readByteString)
 
         assertThat(downstream).isEqualTo(testSource.content)
     }
 
     private class TestSource(contentLength: Int = 1_000) : Source {
         val content: ByteString = ByteString.of(*Random.nextBytes(contentLength))
-        private val buffer = Buffer().write(content)
+        private val buffer = Buffer().apply { write(content) }
 
         override fun read(sink: Buffer, byteCount: Long): Long = buffer.read(sink, byteCount)
 

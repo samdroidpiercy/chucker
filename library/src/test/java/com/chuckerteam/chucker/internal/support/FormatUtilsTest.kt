@@ -12,7 +12,7 @@ internal class FormatUtilsTest {
     )
 
     @Test
-    fun `JSON can have null fields`() {
+    fun testFormatJson_withNullValues() {
         val parsedJson = FormatUtils.formatJson(
             """{ "field": null }"""
         )
@@ -27,7 +27,7 @@ internal class FormatUtilsTest {
     }
 
     @Test
-    fun `JSON can have empty fields`() {
+    fun testFormatJson_withEmptyValues() {
         val parsedJson = FormatUtils.formatJson(
             """{ "field": "" }"""
         )
@@ -42,7 +42,7 @@ internal class FormatUtilsTest {
     }
 
     @Test
-    fun `JSON can be invalid`() {
+    fun testFormatJson_withInvalidJson() {
         val parsedJson = FormatUtils.formatJson(
             """[{ "field": null }"""
         )
@@ -53,7 +53,7 @@ internal class FormatUtilsTest {
     }
 
     @Test
-    fun `JSON object is pretty printed`() {
+    fun testFormatJson_willPrettyPrint() {
         val parsedJson = FormatUtils.formatJson(
             """{ "field1": "something", "field2": "else" }"""
         )
@@ -69,7 +69,7 @@ internal class FormatUtilsTest {
     }
 
     @Test
-    fun `JSON array is pretty printed`() {
+    fun testFormatJsonArray_willPrettyPrint() {
         val parsedJson = FormatUtils.formatJson(
             """[{ "field1": "something1", "field2": "else1" }, { "field1": "something2", "field2": "else2" }]"""
         )
@@ -91,47 +91,47 @@ internal class FormatUtilsTest {
     }
 
     @Test
-    fun `headers can have null values`() {
-        val result = FormatUtils.formatHeaders(null, withMarkup = false)
+    fun testFormatHeaders_withNullValues() {
+        val result = FormatUtils.formatHeaders(null, false)
         assertThat(result).isEmpty()
     }
 
     @Test
-    fun `headers can have empty values`() {
-        val result = FormatUtils.formatHeaders(listOf(), withMarkup = false)
+    fun testFormatHeaders_withEmptyValues() {
+        val result = FormatUtils.formatHeaders(listOf(), false)
         assertThat(result).isEmpty()
     }
 
     @Test
-    fun `headers are formatted without markup`() {
-        val result = FormatUtils.formatHeaders(exampleHeadersList, withMarkup = false)
+    fun testFormatHeaders_withoutMarkup() {
+        val result = FormatUtils.formatHeaders(exampleHeadersList, false)
         val expected = "Accept: text/html\nAuthorization: exampleToken\n"
         assertThat(result).isEqualTo(expected)
     }
 
     @Test
-    fun `headers are formatted with markup`() {
-        val result = FormatUtils.formatHeaders(exampleHeadersList, withMarkup = true)
+    fun testFormatHeaders_withMarkup() {
+        val result = FormatUtils.formatHeaders(exampleHeadersList, true)
         val expected = "<b> Accept: </b>text/html <br /><b> Authorization: </b>exampleToken <br />"
         assertThat(result).isEqualTo(expected)
     }
 
     @Test
-    fun `byte count can be zero`() {
-        val resultNonSi = FormatUtils.formatByteCount(0, si = false)
-        val resultSi = FormatUtils.formatByteCount(0, si = true)
+    fun testFormatByteCount_zeroBytes() {
+        val resultNonSi = FormatUtils.formatByteCount(0, false)
+        val resultSi = FormatUtils.formatByteCount(0, true)
         val expected = "0 B"
         assertThat(resultNonSi).isEqualTo(expected)
         assertThat(resultSi).isEqualTo(expected)
     }
 
     @Test
-    fun `1 kilobyte is formatted`() {
+    fun testFormatByteCount_oneKiloByte() {
         testFormatByteCount(1024L, "1.0 kB", "1.0 KiB")
     }
 
     @Test
-    fun `1023 bytes are formatted`() {
+    fun testFormatByteCount_oneKiloByteSi() {
         testFormatByteCount(1023L, "1.0 kB", "1023 B")
     }
 
@@ -140,19 +140,19 @@ internal class FormatUtilsTest {
         expectedSi: String,
         expectedNonSi: String
     ) {
-        val resultNonSi = FormatUtils.formatByteCount(byteCountToTest, si = false)
-        val resultSi = FormatUtils.formatByteCount(byteCountToTest, si = true)
+        val resultNonSi = FormatUtils.formatByteCount(byteCountToTest, false)
+        val resultSi = FormatUtils.formatByteCount(byteCountToTest, true)
         assertThat(resultNonSi).isEqualTo(expectedNonSi)
         assertThat(resultSi).isEqualTo(expectedSi)
     }
 
     @Test
-    fun `XML can be empty`() {
+    fun testFormatXml_emptyString() {
         assertThat(FormatUtils.formatXml("")).isEmpty()
     }
 
     @Test
-    fun `XML has encoding header added`() {
+    fun testFormatXml_properXml() {
         val xml =
             """
             <example>value</example>
@@ -167,12 +167,12 @@ internal class FormatUtilsTest {
     }
 
     @Test
-    fun `URL encoded form can be blank`() {
+    fun testFormatUrlEncodedForm_blankString() {
         assertThat(FormatUtils.formatUrlEncodedForm("    ")).isEqualTo("    ")
     }
 
     @Test
-    fun `URL encoded form multiple parameters are formatted`() {
+    fun testFormatUrlEncodedForm_properRequest() {
         val request =
             """
             sampleKey=Some%20value&someOtherKey=With%20symbols%20%25!%40%25
@@ -186,7 +186,7 @@ internal class FormatUtilsTest {
     }
 
     @Test
-    fun `URL encoded form single parameter is formatted`() {
+    fun testFormatUrlEncodedForm_singleParam() {
         val request =
             """
             sampleKey=Some%20value
@@ -199,7 +199,7 @@ internal class FormatUtilsTest {
     }
 
     @Test
-    fun `URL encoded form parameters can be without values`() {
+    fun testFormatUrlEncodedForm_noValues() {
         val request =
             """
             sampleKey=&someOtherKey=
@@ -213,7 +213,7 @@ internal class FormatUtilsTest {
     }
 
     @Test
-    fun `URL encoded form parameters can be invalid`() {
+    fun testFormatUrlEncodedForm_invalidRequest() {
         val request =
             """
             sampleKey=Some%20value%someOtherKey=With%20symbols%20%25!%40%25

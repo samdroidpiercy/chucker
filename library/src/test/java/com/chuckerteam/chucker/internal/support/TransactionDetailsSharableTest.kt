@@ -2,7 +2,7 @@ package com.chuckerteam.chucker.internal.support
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.chuckerteam.chucker.util.TestTransactionFactory
+import com.chuckerteam.chucker.TestTransactionFactory
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -13,7 +13,7 @@ internal class TransactionDetailsSharableTest {
     private val context: Context get() = ApplicationProvider.getApplicationContext()
 
     @Test
-    fun `create sharable GET transaction content`() {
+    fun buildCorrectGetTransactionContent() {
         val transaction = TestTransactionFactory.createTransaction("GET")
         val sharableTransaction = TransactionDetailsSharable(transaction, encodeUrls = false)
 
@@ -23,7 +23,7 @@ internal class TransactionDetailsSharableTest {
     }
 
     @Test
-    fun `create sharable POST transaction content`() {
+    fun buildCorrectPostTransactionContent() {
         val transaction = TestTransactionFactory.createTransaction("POST")
         val sharableTransaction = TransactionDetailsSharable(transaction, encodeUrls = false)
 

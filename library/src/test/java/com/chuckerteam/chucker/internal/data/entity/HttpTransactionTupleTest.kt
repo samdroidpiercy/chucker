@@ -5,17 +5,17 @@ import org.junit.Test
 
 internal class HttpTransactionTupleTest {
     @Test
-    fun `transaction has SSL scheme`() {
+    fun schemeIsSSL() {
         assertThat(createTuple(scheme = "https").isSsl).isTrue()
     }
 
     @Test
-    fun `transaction does not have SSL scheme`() {
+    fun schemeIsNotSSL() {
         assertThat(createTuple(scheme = "http").isSsl).isFalse()
     }
 
     @Test
-    fun `transaction has complete status`() {
+    fun statusIsComplete() {
         assertThat(
             createTuple(
                 responseCode = 200,
@@ -25,7 +25,7 @@ internal class HttpTransactionTupleTest {
     }
 
     @Test
-    fun `transaction has failure status`() {
+    fun statusIsFailed() {
         assertThat(
             createTuple(
                 error = "foo"
@@ -34,7 +34,7 @@ internal class HttpTransactionTupleTest {
     }
 
     @Test
-    fun `transaction has requested status`() {
+    fun statusIsRequested() {
         assertThat(
             createTuple(
                 responseCode = null
@@ -43,17 +43,17 @@ internal class HttpTransactionTupleTest {
     }
 
     @Test
-    fun `duration is null`() {
+    fun durationBlankUntilWeHaveData() {
         assertThat(createTuple(tookMs = null).durationString).isNull()
     }
 
     @Test
-    fun `duration is formatted`() {
+    fun duration() {
         assertThat(createTuple(tookMs = 123).durationString).isEqualTo("123 ms")
     }
 
     @Test
-    fun `total size forces null request and response payload sizes to be 0 bytes`() {
+    fun totalSizeHandlesNulls() {
         assertThat(
             createTuple(
                 requestPayloadSize = null,
@@ -77,7 +77,7 @@ internal class HttpTransactionTupleTest {
     }
 
     @Test
-    fun `total size adds request and response payload sizes`() {
+    fun totalSize() {
         assertThat(
             createTuple(
                 requestPayloadSize = 123,
@@ -87,22 +87,22 @@ internal class HttpTransactionTupleTest {
     }
 
     @Test
-    fun `formatted path is not encoded`() {
-        assertThat(createTuple(path = "/abc/def?foo=bar baz").getFormattedPath(encode = false))
+    fun nonEncodedFormattedPath() {
+        assertThat(createTuple(path = "/abc/def?foo=bar baz").getFormattedPath(false))
             .isEqualTo("/abc/def?foo=bar baz")
     }
 
     @Test
-    fun `formatted path is encoded`() {
-        assertThat(createTuple(path = "/abc/def?foo=bar baz").getFormattedPath(encode = true))
+    fun encodedFormattedPath() {
+        assertThat(createTuple(path = "/abc/def?foo=bar baz").getFormattedPath(true))
             .isEqualTo("/abc/def?foo=bar%20baz")
     }
 
     @Test
-    fun `formatted path handles null path`() {
-        assertThat(createTuple(path = null).getFormattedPath(encode = false))
+    fun formattedPathHandlesNull() {
+        assertThat(createTuple(path = null).getFormattedPath(false))
             .isEqualTo("")
-        assertThat(createTuple(path = null).getFormattedPath(encode = true))
+        assertThat(createTuple(path = null).getFormattedPath(true))
             .isEqualTo("")
     }
 
