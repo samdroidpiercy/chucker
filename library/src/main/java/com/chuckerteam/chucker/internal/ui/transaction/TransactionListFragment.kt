@@ -2,12 +2,7 @@ package com.chuckerteam.chucker.internal.ui.transaction
 
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
@@ -21,13 +16,15 @@ import com.chuckerteam.chucker.internal.data.model.DialogData
 import com.chuckerteam.chucker.internal.support.TransactionListDetailsSharable
 import com.chuckerteam.chucker.internal.support.shareAsFile
 import com.chuckerteam.chucker.internal.support.showDialog
+import com.chuckerteam.chucker.internal.ui.ChuckerEditResponseActivity
 import com.chuckerteam.chucker.internal.ui.MainViewModel
 import kotlinx.coroutines.launch
 
 internal class TransactionListFragment :
     Fragment(),
     SearchView.OnQueryTextListener,
-    TransactionAdapter.TransactionClickListListener {
+    TransactionAdapter.TransactionClickListListener,
+    TransactionAdapter.EditResponseListener {
 
     private val viewModel: MainViewModel by viewModels()
 
@@ -44,14 +41,20 @@ internal class TransactionListFragment :
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View? {
-        transactionsBinding = ChuckerFragmentTransactionListBinding.inflate(inflater, container, false)
+        transactionsBinding =
+            ChuckerFragmentTransactionListBinding.inflate(inflater, container, false)
 
-        transactionsAdapter = TransactionAdapter(requireContext(), this)
+        transactionsAdapter = TransactionAdapter(requireContext(), this, this)
         with(transactionsBinding) {
             tutorialLink.movementMethod = LinkMovementMethod.getInstance()
             transactionsRecyclerView.apply {
                 setHasFixedSize(true)
-                addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
+                addItemDecoration(
+                    DividerItemDecoration(
+                        requireContext(),
+                        DividerItemDecoration.VERTICAL
+                    )
+                )
                 adapter = transactionsAdapter
             }
         }
@@ -126,7 +129,8 @@ internal class TransactionListFragment :
     private fun exportTransactions() = lifecycleScope.launch {
         val transactions = viewModel.getAllTransactions()
         if (transactions.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), R.string.chucker_export_empty_text, Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), R.string.chucker_export_empty_text, Toast.LENGTH_SHORT)
+                .show()
             return@launch
         }
 
@@ -163,5 +167,9 @@ internal class TransactionListFragment :
         fun newInstance(): TransactionListFragment {
             return TransactionListFragment()
         }
+    }
+
+    override fun onEditResponseClick(transactionId: Long) {
+        ChuckerEditResponseActivity.start(this.requireContext(), transactionId)
     }
 }

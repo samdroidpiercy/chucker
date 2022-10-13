@@ -1,7 +1,10 @@
 # Change Log
 
-This file follows [Keepachangelog](https://keepachangelog.com/) format. 
+This file follows [Keepachangelog](https://keepachangelog.com/) format.
 Please add your entries according to this format.
+
+## Version 3.5.3 *(2022-10-12)*
+Added API mocking to chucker
 
 ## Version 3.5.2 *(2021-07-28)*
 
@@ -52,8 +55,8 @@ Note: this release has issue with Android 12 support, so update to 3.5.1 is high
 
 ## Version 3.3.0 *(2020-09-30)*
 
-This is a new minor release with multiple fixes and improvements. 
-After this release we are starting to work on a new major release 4.x with minSDK 21. 
+This is a new minor release with multiple fixes and improvements.
+After this release we are starting to work on a new major release 4.x with minSDK 21.
 Bumping minSDK to 21 is required to keep up with [newer versions of OkHttp](https://medium.com/square-corner-blog/okhttp-3-13-requires-android-5-818bb78d07ce).
 Versions 3.x will be supported for 6 months (till March 2021) getting bugfixes and minor improvements.
 
@@ -61,7 +64,7 @@ Versions 3.x will be supported for 6 months (till March 2021) getting bugfixes a
 
 * Added a new flag `alwaysReadResponseBody` into Chucker configuration to read the whole response body even if consumer fails to consume it.
 * Added port numbers as part of the URL. Numbers appear if they are different from default 80 or 443.
-* Chucker now shows partially read application responses properly. Earlier in 3.2.0 such responses didn't appear in the UI. 
+* Chucker now shows partially read application responses properly. Earlier in 3.2.0 such responses didn't appear in the UI.
 * Transaction size is defined by actual payload size now, not by `Content-length` header.
 * Added empty state UI for payloads, so no more guessing if there is some error or the payload is really empty.
 * Added ability to export list of transactions.
@@ -145,7 +148,6 @@ This change also allows to avoid problems with Chucker consuming responses, like
 * Updated Android Gradle plugin to 3.6.1
 * Updated Room to 2.2.5
 * Updated OkHttp to 3.12.10
-* Updated Detekt to 1.7.3
 * Updated Dokka to 0.10.1
 * Updated KtLint plugin to 9.2.1
 * Updated MaterialComponents to 1.1.0
@@ -204,7 +206,7 @@ This release was possible thanks to the contribution of:
 
 ### This version shouldn't be used as dependency due to [#203](https://github.com/ChuckerTeam/chucker/issues/203). Use 3.1.1 instead.
 
-This is a new minor release of Chucker. Please note that this minor release contains multiple new features (see below) as well as multiple bugfixes. 
+This is a new minor release of Chucker. Please note that this minor release contains multiple new features (see below) as well as multiple bugfixes.
 
 ### Summary of Changes
 
@@ -241,11 +243,11 @@ This is a new minor release of Chucker. Please note that this minor release cont
 This release was possible thanks to the contribution of:
 
 @christopherniksch
-@yoavst 
+@yoavst
 @psh
 @kmayoral
 @vbuberen
-@dcampogiani 
+@dcampogiani
 @ullas-jain
 @rakshit444
 @olivierperez
@@ -255,8 +257,8 @@ This release was possible thanks to the contribution of:
 @koral--
 @redwarp
 @uOOOO
-@sprohaszka 
-@PaulWoitaschek 
+@sprohaszka
+@PaulWoitaschek
 
 
 ## Version 3.0.1 *(2019-08-16)*

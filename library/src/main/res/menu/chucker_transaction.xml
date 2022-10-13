@@ -13,8 +13,7 @@
         android:title="@string/chucker_encode_url"
         android:id="@+id/encode_url"
         android:visible="false"
-        app:showAsAction="ifRoom">
-    </item>
+        app:showAsAction="ifRoom"></item>
     <item
         android:icon="@drawable/chucker_ic_share_white"
         android:title="@string/chucker_share"
@@ -30,9 +29,6 @@
                 <item
                     android:id="@+id/share_file"
                     android:title="@string/chucker_share_as_file" />
-                <item
-                    android:id="@+id/share_har"
-                    android:title="@string/chucker_share_as_har" />
             </group>
         </menu>
     </item>
@@ -41,6 +37,5 @@
         android:title="@string/chucker_save"
         android:id="@+id/save_body"
         android:visible="false"
-        app:showAsAction="ifRoom">
-    </item>
+        app:showAsAction="ifRoom"></item>
 </menu>

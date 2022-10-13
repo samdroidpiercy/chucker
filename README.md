@@ -52,7 +52,7 @@ val client = OkHttpClient.Builder()
 
 **That's it!** 🎉 Chucker will now record all HTTP interactions made by your OkHttp client.
 
-Historically, Chucker was distributed through JitPack. 
+Historically, Chucker was distributed through JitPack.
 You can find older version of Chucker here: [![JitPack](https://jitpack.io/v/ChuckerTeam/chucker.svg)](https://jitpack.io/#ChuckerTeam/chucker).
 
 ## Features 🧰
@@ -107,7 +107,7 @@ val client = OkHttpClient.Builder()
         .build()
 ```
 
-### Throwables 
+### Throwables
 
 Chucker can also collect and display **Throwables** of your application. To inform Chucker that a `Throwable` was fired you need to call the `onError` method of the `ChuckerCollector` (you need to retain an instance of your collector):
 
@@ -195,22 +195,11 @@ Short `TODO` List for new contributors:
 
 In order to start working on Chucker, you need to fork the project and open it in Android Studio/IntelliJ IDEA.
 
-Before committing we suggest you install the pre-commit hooks with the following command:
-
-```
-./gradlew installGitHook
-```
-
-This will make sure your code is validated against KtLint and Detekt before every commit.
-The command will run automatically before the `clean` task, so you should have the pre-commit hook installed by then.
-
-Before submitting a PR please run:
-
 ```
 ./gradlew build
 ```
 
-This will build the library and will run all the verification tasks (ktlint, detekt, lint, unit tests) locally.
+This will build the library and will run all the verification tasks (ktlint, lint, unit tests) locally.
 This will make sure your CI checks will pass.
 
 ## Acknowledgments 🌸

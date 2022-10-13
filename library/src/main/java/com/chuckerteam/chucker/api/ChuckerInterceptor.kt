@@ -1,21 +1,10 @@
 package com.chuckerteam.chucker.api
 
 import android.content.Context
+import com.chuckerteam.chucker.internal.data.cache.mockApiCache
 import com.chuckerteam.chucker.internal.data.entity.HttpTransaction
-import com.chuckerteam.chucker.internal.support.CacheDirectoryProvider
-import com.chuckerteam.chucker.internal.support.DepletingSource
-import com.chuckerteam.chucker.internal.support.FileFactory
-import com.chuckerteam.chucker.internal.support.IOUtils
-import com.chuckerteam.chucker.internal.support.ReportingSink
-import com.chuckerteam.chucker.internal.support.TeeSource
-import com.chuckerteam.chucker.internal.support.contentType
-import com.chuckerteam.chucker.internal.support.hasBody
-import com.chuckerteam.chucker.internal.support.isGzipped
-import okhttp3.Headers
-import okhttp3.Interceptor
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.ResponseBody
+import com.chuckerteam.chucker.internal.support.*
+import okhttp3.*
 import okio.Buffer
 import okio.GzipSource
 import okio.Okio
@@ -23,7 +12,6 @@ import okio.Source
 import java.io.File
 import java.io.IOException
 import java.nio.charset.Charset
-import kotlin.jvm.Throws
 
 /**
  * An OkHttp Interceptor which persists and displays HTTP activity
@@ -128,7 +116,8 @@ public class ChuckerInterceptor internal constructor(
     private fun processRequest(request: Request, transaction: HttpTransaction) {
         val requestBody = request.body()
 
-        val encodingIsSupported = io.bodyHasSupportedEncoding(request.headers().get(CONTENT_ENCODING))
+        val encodingIsSupported =
+            io.bodyHasSupportedEncoding(request.headers().get(CONTENT_ENCODING))
 
         transaction.apply {
             setRequestHeaders(request.headers())
@@ -166,7 +155,8 @@ public class ChuckerInterceptor internal constructor(
         response: Response,
         transaction: HttpTransaction
     ) {
-        val responseEncodingIsSupported = io.bodyHasSupportedEncoding(response.headers().get(CONTENT_ENCODING))
+        val responseEncodingIsSupported =
+            io.bodyHasSupportedEncoding(response.headers().get(CONTENT_ENCODING))
 
         transaction.apply {
             // includes headers added later in the chain
@@ -197,10 +187,24 @@ public class ChuckerInterceptor internal constructor(
      * when the end user reads bytes form the [response].
      */
     private fun multiCastResponseBody(
-        response: Response,
+        response1: Response,
         transaction: HttpTransaction
     ): Response {
+
+        val mockApiCache = mockApiCache.snapshot()
+        val shortPath = transaction.path?.split("?")?.get(0) ?: ""
+        val response = if (mockApiCache.contains(shortPath)) {
+            transaction.mockedThisResponse = true
+            response1.newBuilder().body(
+                ResponseBody.create(
+                    response1.body()?.contentType(),
+                    mockApiCache[shortPath]!!.jsonStringBody
+                )
+            ).build()
+        } else response1
+
         val responseBody = response.body()
+
         if (!response.hasBody() || responseBody == null) {
             collector.onResponseReceived(transaction)
             return response
@@ -365,7 +369,8 @@ public class ChuckerInterceptor internal constructor(
             context = context,
             collector = collector ?: ChuckerCollector(context),
             maxContentLength = maxContentLength,
-            cacheDirectoryProvider = cacheDirectoryProvider ?: CacheDirectoryProvider { context.filesDir },
+            cacheDirectoryProvider = cacheDirectoryProvider
+                ?: CacheDirectoryProvider { context.filesDir },
             alwaysReadResponseBody = alwaysReadResponseBody,
             headersToRedact = headersToRedact,
         )

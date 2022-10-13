@@ -2,12 +2,7 @@ package com.chuckerteam.chucker.internal.ui.throwable
 
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -30,7 +25,11 @@ internal class ThrowableListFragment : Fragment(), ThrowableAdapter.ThrowableCli
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         errorsBinding = ChuckerFragmentThrowableListBinding.inflate(inflater, container, false)
         errorsAdapter = ThrowableAdapter(this)
 

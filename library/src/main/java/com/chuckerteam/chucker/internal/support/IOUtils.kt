@@ -56,12 +56,13 @@ internal class IOUtils(private val context: Context) {
         return body
     }
 
-    fun getNativeSource(input: BufferedSource, isGzipped: Boolean): BufferedSource = if (isGzipped) {
-        val source = GzipSource(input)
-        source.use { Okio.buffer(it) }
-    } else {
-        input
-    }
+    fun getNativeSource(input: BufferedSource, isGzipped: Boolean): BufferedSource =
+        if (isGzipped) {
+            val source = GzipSource(input)
+            source.use { Okio.buffer(it) }
+        } else {
+            input
+        }
 
     fun bodyHasSupportedEncoding(contentEncoding: String?) =
         contentEncoding.isNullOrEmpty() ||
