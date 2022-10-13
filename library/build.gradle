@@ -16,7 +16,7 @@ publishing {
             groupId 'com.sampiercy.chuckermucker' // Replace with group ID
             artifactId getArtificatId()
             version VERSION_NAME
-            artifact("$buildDir/outputs/aar/${getArtificatId()}-release.aar")
+            artifact("$buildDir/outputs/aar/${getArtificatId()}-debug.aar")
         }
     }
 
@@ -26,11 +26,12 @@ publishing {
 
             url = uri("https://maven.pkg.github.com/samdroidpiercy/chucker-mocker")
             credentials {
-                username = githubProperties['gpr.usr'] ?: System.getenv("GPR_USER")
-                password = githubProperties['gpr.key'] ?: System.getenv("GPR_API_KEY")
+                username = "samdroidpiercy" ?: System.getenv("GPR_USER")
+                password = "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" ?: System.getenv("GPR_API_KEY")
             }
         }
     }
+
 }
 
 android {
