@@ -4,7 +4,9 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'maven-publish' // Apply this plugin at the top of your library build.gradle
 
 def githubProperties = new Properties()
-githubProperties.load(new FileInputStream(rootProject.file("github.properties"))) //Set env variable GPR_USER & GPR_API_KEY if not adding a properties file
+githubProperties.load(new FileInputStream(rootProject.file("local.properties"))) //Set env variable GPR_USER & GPR_API_KEY if not adding a properties file
+def usrname = githubProperties.getProperty('GPR_USER')
+def passwrd = githubProperties.getProperty('GPR_KEY1')
 
 def getArtificatId = { ->
     return "library" // Replace with library name ID
@@ -26,8 +28,8 @@ publishing {
 
             url = uri("https://maven.pkg.github.com/samdroidpiercy/chucker-mocker")
             credentials {
-                username = "samdroidpiercy" ?: System.getenv("GPR_USER")
-                password = "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" ?: System.getenv("GPR_API_KEY")
+                username = usrname ?: System.getenv("GPR_USER")
+                password = passwrd ?: System.getenv("GPR_KEY1")
             }
         }
     }
